@@ -1,6 +1,7 @@
 import crc32 from './crc.js';
 import usages from './usages.js';
 import examples from './examples.js';
+import * as profiles from './profiles.js';
 
 const REPORT_ID_CONFIG = 100;
 const REPORT_ID_MONITOR = 101;
@@ -229,8 +230,193 @@ document.addEventListener("DOMContentLoaded", function () {
     target_modal = new bootstrap.Modal(document.getElementById('target_usage_modal'), {});
     setup_macros();
     setup_expressions();
+    setup_profiles();
     set_ui_state();
 });
+
+// -------------------- Profiles UI --------------------
+
+function setup_profiles() {
+    document.getElementById("profile_switch").addEventListener("click", profile_switch_onclick);
+    document.getElementById("profile_save_as").addEventListener("click", profile_save_as_onclick);
+    document.getElementById("profile_import").addEventListener("click", () => document.getElementById("profile_import_file").click());
+    document.getElementById("profile_import_file").addEventListener("change", profile_import_onchange);
+    document.getElementById("profile_export").addEventListener("click", profile_export_onclick);
+    document.getElementById("profile_delete").addEventListener("click", profile_delete_onclick);
+    document.getElementById("profile_reload").addEventListener("click", profile_reload_onclick);
+    // Auto-import profiles from disk on first load (works when served via the
+    // bundled local HTTP server; silently no-ops otherwise).
+    profiles.auto_import_from_server().then(imported => {
+        if (imported.length > 0) {
+            console.log('profiles: auto-imported from disk:', imported.join(', '));
+        }
+        refresh_profile_ui();
+    });
+}
+
+async function profile_reload_onclick() {
+    clear_error();
+    const imported = await profiles.auto_import_from_server();
+    if (imported.length === 0) {
+        display_error('No profiles found on the server (need profiles-manifest.json + profiles/*.json next to the web tool).');
+    }
+    await refresh_profile_ui();
+}
+
+function refresh_profile_dropdown(selected_name) {
+    const select = document.getElementById("profile_select");
+    const names = profiles.list_profile_names();
+    select.innerHTML = '';
+    if (names.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = '(no profiles saved)';
+        select.appendChild(opt);
+    } else {
+        for (const name of names) {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            if (name === selected_name) opt.selected = true;
+            select.appendChild(opt);
+        }
+    }
+}
+
+async function refresh_profile_ui() {
+    refresh_profile_dropdown();
+    const badge = document.getElementById('active_profile_badge');
+    const status = document.getElementById('profile_status_line');
+    if (device == null) {
+        badge.textContent = 'unknown';
+        badge.className = 'badge bg-secondary ms-1';
+        status.textContent = 'No device connected — fingerprint shown is of the editor config.';
+    }
+    try {
+        const result = await profiles.identify_profile(config);
+        if (result.name) {
+            badge.textContent = result.name;
+            badge.className = 'badge bg-success ms-1';
+        } else {
+            badge.textContent = (Object.keys(profiles.load_profiles()).length === 0) ? 'no profiles' : 'custom';
+            badge.className = 'badge bg-warning text-dark ms-1';
+        }
+        const short = result.fingerprint.substring(0, 16);
+        const prefix = (device == null) ? 'Editor' : 'Device';
+        status.textContent = `${prefix} fingerprint: ${short}…  (profiles in browser storage)`;
+    } catch (e) {
+        console.warn(e);
+    }
+}
+
+async function profile_switch_onclick() {
+    clear_error();
+    const select = document.getElementById('profile_select');
+    const name = select.value;
+    if (!name) {
+        display_error('No profile selected.');
+        return;
+    }
+    const profile = profiles.get_profile(name);
+    if (!profile) {
+        display_error('Profile "' + name + '" not found.');
+        return;
+    }
+    if (device == null) {
+        if (!confirm(`Load profile "${name}" into the editor? (No device connected, nothing will be written.)`)) return;
+        config = JSON.parse(JSON.stringify(profile));
+        set_ui_state();
+        validate_ui_expressions();
+        switch_to_mappings_tab();
+        refresh_profile_ui();
+        return;
+    }
+    if (!confirm(`Switch device to profile "${name}"? This will overwrite the current device config.`)) return;
+    config = JSON.parse(JSON.stringify(profile));
+    set_ui_state();
+    validate_ui_expressions();
+    await save_to_device();
+    refresh_profile_ui();
+}
+
+function profile_save_as_onclick() {
+    clear_error();
+    const existing = profiles.list_profile_names();
+    const suggested = existing.length === 0 ? 'mac' : '';
+    const name = prompt('Save current config as profile name:', suggested);
+    if (!name) return;
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    if (existing.includes(trimmed)) {
+        if (!confirm(`Profile "${trimmed}" already exists. Overwrite?`)) return;
+    }
+    profiles.save_profile(trimmed, config);
+    refresh_profile_ui().then(() => {
+        const select = document.getElementById('profile_select');
+        select.value = trimmed;
+    });
+}
+
+function profile_import_onchange() {
+    clear_error();
+    const file_input = document.getElementById('profile_import_file');
+    const file = file_input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        try {
+            const parsed = JSON.parse(e.target.result);
+            check_json_version(parsed['version']);
+            const default_name = file.name.replace(/\.json$/i, '').replace(/^hid-remapper-config[\s_-]*/i, '') || 'profile';
+            const name = prompt('Import as profile name:', default_name);
+            if (!name) return;
+            const trimmed = name.trim();
+            if (!trimmed) return;
+            const existing = profiles.list_profile_names();
+            if (existing.includes(trimmed)) {
+                if (!confirm(`Profile "${trimmed}" already exists. Overwrite?`)) return;
+            }
+            profiles.save_profile(trimmed, parsed);
+            refresh_profile_ui().then(() => {
+                document.getElementById('profile_select').value = trimmed;
+            });
+        } catch (err) {
+            display_error(err);
+        }
+    };
+    reader.readAsText(file);
+    file_input.value = '';
+}
+
+function profile_export_onclick() {
+    clear_error();
+    const name = document.getElementById('profile_select').value;
+    if (!name) {
+        display_error('No profile selected.');
+        return;
+    }
+    const profile = profiles.get_profile(name);
+    if (!profile) {
+        display_error('Profile not found.');
+        return;
+    }
+    const a = document.createElement('a');
+    a.href = 'data:application/json,' + encodeURIComponent(JSON.stringify(profile, null, 4));
+    a.download = 'hid-remapper-' + name + '.json';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+function profile_delete_onclick() {
+    clear_error();
+    const name = document.getElementById('profile_select').value;
+    if (!name) return;
+    if (!confirm(`Delete profile "${name}"?`)) return;
+    profiles.delete_profile(name);
+    refresh_profile_ui();
+}
 
 async function open_device() {
     if (busy) {
@@ -409,6 +595,7 @@ async function load_from_device() {
 
         set_ui_state();
         validate_ui_expressions();
+        refresh_profile_ui();
     } catch (e) {
         display_error(e);
     }
@@ -558,6 +745,7 @@ async function save_to_device() {
                     document.getElementById('save_to_device_checkmark').classList.add('d-none');
                     save_to_device_checkmark_timeout_id = null;
                 }, 3000);
+                refresh_profile_ui();
                 break;
             case PERSIST_CONFIG_CONFIG_TOO_BIG:
                 display_error('Configuration too big to persist.');
@@ -876,6 +1064,7 @@ function file_uploaded() {
             set_ui_state();
             validate_ui_expressions();
             switch_to_mappings_tab();
+            refresh_profile_ui();
         } catch (e) {
             display_error(e);
         }

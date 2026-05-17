@@ -32,6 +32,46 @@
             </div>
         </div>
 
+        <div id="profiles_bar" class="card mb-3">
+            <div class="card-body py-2">
+                <div class="row align-items-center g-2">
+                    <div class="col-auto">
+                        <strong>Profile:</strong>
+                        <span id="active_profile_badge" class="badge bg-secondary ms-1">unknown</span>
+                    </div>
+                    <div class="col-auto">
+                        <select id="profile_select" class="form-select form-select-sm" style="min-width: 140px;">
+                            <option value="">(no profiles saved)</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button id="profile_switch" type="button" class="btn btn-sm btn-primary">Switch &amp; write</button>
+                    </div>
+                    <div class="col-auto">
+                        <button id="profile_save_as" type="button" class="btn btn-sm btn-outline-secondary">Save current as&hellip;</button>
+                    </div>
+                    <div class="col-auto">
+                        <button id="profile_import" type="button" class="btn btn-sm btn-outline-secondary">Import&hellip;</button>
+                        <input id="profile_import_file" type="file" accept="application/json,.json" class="d-none">
+                    </div>
+                    <div class="col-auto">
+                        <button id="profile_export" type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                    </div>
+                    <div class="col-auto">
+                        <button id="profile_reload" type="button" class="btn btn-sm btn-outline-secondary" title="Re-read profiles/*.json from the server">Reload from disk</button>
+                    </div>
+                    <div class="col-auto">
+                        <button id="profile_delete" type="button" class="btn btn-sm btn-outline-danger">Delete</button>
+                    </div>
+                </div>
+                <div class="row mt-1">
+                    <div class="col">
+                        <small id="profile_status_line" class="text-muted">No device connected.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="error" class="alert alert-danger d-none"></div>
 
         <div class="nav nav-tabs" id="nav-tab" role="tablist">

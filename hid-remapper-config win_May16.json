@@ -1,0 +1,244 @@
+{
+    "version": 18,
+    "unmapped_passthrough_layers": [
+        0,
+        1,
+        2,
+        3
+    ],
+    "partial_scroll_timeout": 1000000,
+    "tap_hold_threshold": 200000,
+    "gpio_debounce_time_ms": 5,
+    "interval_override": 0,
+    "our_descriptor_number": 0,
+    "ignore_auth_dev_inputs": false,
+    "macro_entry_duration": 1,
+    "gpio_output_mode": 0,
+    "input_labels": 0,
+    "normalize_gamepad_inputs": false,
+    "mappings": [
+        {
+            "target_usage": "0xfff20003",
+            "source_usage": "0x00090005",
+            "scaling": 1000,
+            "layers": [
+                0
+            ],
+            "sticky": false,
+            "tap": false,
+            "hold": false,
+            "source_port": 0,
+            "target_port": 0
+        },
+        {
+            "target_usage": "0xfff20002",
+            "source_usage": "0x00090006",
+            "scaling": 1000,
+            "layers": [
+                0
+            ],
+            "sticky": false,
+            "tap": false,
+            "hold": false,
+            "source_port": 0,
+            "target_port": 0
+        },
+        {
+            "target_usage": "0xfff20001",
+            "source_usage": "0x00090007",
+            "scaling": 1000,
+            "layers": [
+                0
+            ],
+            "sticky": false,
+            "tap": false,
+            "hold": false,
+            "source_port": 0,
+            "target_port": 0
+        },
+        {
+            "target_usage": "0x000700e7",
+            "source_usage": "0x000700e6",
+            "scaling": 1000,
+            "layers": [
+                0
+            ],
+            "sticky": false,
+            "tap": false,
+            "hold": false,
+            "source_port": 0,
+            "target_port": 0
+        },
+        {
+            "target_usage": "0xfff20008",
+            "source_usage": "0x00090005",
+            "scaling": 1000,
+            "layers": [
+                0
+            ],
+            "sticky": false,
+            "tap": false,
+            "hold": true,
+            "source_port": 0,
+            "target_port": 0
+        },
+        {
+            "target_usage": "0xfff20004",
+            "source_usage": "0x00090008",
+            "scaling": 1000,
+            "layers": [
+                0
+            ],
+            "sticky": false,
+            "tap": false,
+            "hold": false,
+            "source_port": 0,
+            "target_port": 0
+        },
+        {
+            "target_usage": "0xfff20005",
+            "source_usage": "0x00090004",
+            "scaling": 1000,
+            "layers": [
+                0
+            ],
+            "sticky": false,
+            "tap": false,
+            "hold": false,
+            "source_port": 0,
+            "target_port": 0
+        },
+        {
+            "target_usage": "0x000700e0",
+            "source_usage": "0x000700e2",
+            "scaling": 1000,
+            "layers": [
+                0
+            ],
+            "sticky": false,
+            "tap": false,
+            "hold": false,
+            "source_port": 0,
+            "target_port": 0
+        },
+        {
+            "target_usage": "0x000700e2",
+            "source_usage": "0x000700e0",
+            "scaling": 1000,
+            "layers": [
+                0
+            ],
+            "sticky": false,
+            "tap": false,
+            "hold": false,
+            "source_port": 0,
+            "target_port": 0
+        }
+    ],
+    "macros": [
+        [
+            [
+                "0x000700e3",
+                "0x00070008"
+            ]
+        ],
+        [
+            [
+                "0x000700e3",
+                "0x0007002b"
+            ]
+        ],
+        [
+            [
+                "0x000700e3",
+                "0x000700e1",
+                "0x00070016"
+            ]
+        ],
+        [
+            [
+                "0x000700e3",
+                "0x0007000c"
+            ]
+        ],
+        [
+            [
+                "0x000700e1",
+                "0x00070006"
+            ],
+            [],
+            [],
+            [],
+            [
+                "0x0007000b"
+            ],
+            [
+                "0x00070004"
+            ],
+            [
+                "0x00070011"
+            ],
+            [
+                "0x0007000a"
+            ],
+            [
+                "0x00070008"
+            ],
+            [
+                "0x000700e1",
+                "0x00070010"
+            ],
+            [
+                "0x000700e1",
+                "0x0007001f"
+            ],
+            [],
+            [],
+            [],
+            [
+                "0x00070020"
+            ],
+            [
+                "0x00070021"
+            ]
+        ],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        []
+    ],
+    "expressions": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+    ],
+    "quirks": []
+}

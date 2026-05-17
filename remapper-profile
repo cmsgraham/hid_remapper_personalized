@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# HID Remapper profile switcher.
+#
+# Usage:
+#   remapper-profile                 # show status (currently-active profile)
+#   remapper-profile status          # same as above
+#   remapper-profile list            # list available profiles
+#   remapper-profile <name>          # apply profile (e.g. mac, win)
+#
+# Profiles live as JSON files under ./profiles/<name>.json next to this script.
+# State of the last successfully applied profile is cached in ./.remapper-last
+# but the source of truth for "status" is always the live device config.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROFILES_DIR="$SCRIPT_DIR/profiles"
+LAST_FILE="$SCRIPT_DIR/.remapper-last"
+VENV_PY="$SCRIPT_DIR/.venv-remapper/bin/python"
+CONFIG_TOOL_DIR="$SCRIPT_DIR/config-tool"
+
+if [[ ! -x "$VENV_PY" ]]; then
+    echo "error: python venv not found at $VENV_PY" >&2
+    echo "       run: python3 -m venv .venv-remapper && .venv-remapper/bin/pip install hid" >&2
+    exit 1
+fi
+
+list_profiles() {
+    if [[ ! -d "$PROFILES_DIR" ]]; then
+        echo "(no profiles directory)" >&2
+        return
+    fi
+    ls -1 "$PROFILES_DIR"/*.json 2>/dev/null | while read -r f; do
+        basename "$f" .json
+    done
+}
+
+apply_profile() {
+    local name="$1"
+    local file="$PROFILES_DIR/$name.json"
+    if [[ ! -f "$file" ]]; then
+        echo "error: profile '$name' not found at $file" >&2
+        echo "available profiles:" >&2
+        list_profiles | sed 's/^/  - /' >&2
+        exit 2
+    fi
+    echo "applying profile: $name ($file)"
+    (cd "$CONFIG_TOOL_DIR" && "$VENV_PY" set_config.py < "$file")
+    echo "$name" > "$LAST_FILE"
+    echo "done. active profile: $name"
+}
+
+show_status() {
+    "$VENV_PY" "$SCRIPT_DIR/remapper-profile-status.py" \
+        --profiles "$PROFILES_DIR" \
+        --config-tool "$CONFIG_TOOL_DIR" \
+        --last "$LAST_FILE"
+}
+
+cmd="${1:-status}"
+case "$cmd" in
+    -h|--help|help)
+        sed -n '2,11p' "$0"
+        ;;
+    status)
+        show_status
+        ;;
+    list)
+        list_profiles
+        ;;
+    *)
+        apply_profile "$cmd"
+        ;;
+esac

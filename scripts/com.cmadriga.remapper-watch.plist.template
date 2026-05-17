@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  HID Remapper auto-profile watcher (macOS).
+
+  Fires whenever a USB device with vendor 0xCAFE (51966) / product 0xBAF2
+  (47858) matches, which is the HID Remapper.  Runs remapper-watch.sh which
+  in turn applies the "mac" profile via remapper-profile.
+
+  The agent re-arms automatically on each new device arrival, so it will fire
+  on every plug-in / cable swap.
+
+  install: ./scripts/install-watch-mac.sh
+  uninstall: ./scripts/uninstall-watch-mac.sh
+
+  NOTE: __REPO_DIR__ is replaced with the actual repo path at install time.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.cmadriga.remapper-watch</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>__REPO_DIR__/scripts/remapper-watch.sh</string>
+        <string>mac</string>
+    </array>
+
+    <key>LaunchEvents</key>
+    <dict>
+        <key>com.apple.iokit.matching</key>
+        <dict>
+            <key>com.cmadriga.remapper-usb-arrival</key>
+            <dict>
+                <key>IOProviderClass</key>
+                <string>IOUSBDevice</string>
+                <key>idVendor</key>
+                <integer>51966</integer>
+                <key>idProduct</key>
+                <integer>47858</integer>
+            </dict>
+        </dict>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>__HOME__/Library/Logs/remapper-watch.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>__HOME__/Library/Logs/remapper-watch.log</string>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+</dict>
+</plist>
