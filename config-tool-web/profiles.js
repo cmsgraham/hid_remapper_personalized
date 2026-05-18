@@ -43,6 +43,35 @@ export function delete_profile(name) {
     save_profiles(profiles);
 }
 
+// Best-effort write-through to the local dev server (serve.py). Silently
+// ignores network errors so the UI stays usable when served from a plain
+// http.server or from remapper.org. Returns true on confirmed disk save.
+export async function persist_to_disk(name, config) {
+    if (!/^[A-Za-z0-9._-]+$/.test(name)) return false;
+    try {
+        const r = await fetch(`./profiles/${encodeURIComponent(name)}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config, null, 4),
+        });
+        return r.ok;
+    } catch (e) {
+        return false;
+    }
+}
+
+export async function remove_from_disk(name) {
+    if (!/^[A-Za-z0-9._-]+$/.test(name)) return false;
+    try {
+        const r = await fetch(`./profiles/${encodeURIComponent(name)}.json`, {
+            method: 'DELETE',
+        });
+        return r.ok;
+    } catch (e) {
+        return false;
+    }
+}
+
 // Try to fetch profile JSON files served from disk (profiles/ folder next to
 // the web tool). Returns the list of names that were successfully imported.
 // Silently does nothing when the page is served from a host that doesn't

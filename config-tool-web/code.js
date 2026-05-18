@@ -351,6 +351,7 @@ function profile_save_as_onclick() {
         if (!confirm(`Profile "${trimmed}" already exists. Overwrite?`)) return;
     }
     profiles.save_profile(trimmed, config);
+    profiles.persist_to_disk(trimmed, config);
     refresh_profile_ui().then(() => {
         const select = document.getElementById('profile_select');
         select.value = trimmed;
@@ -377,6 +378,7 @@ function profile_import_onchange() {
                 if (!confirm(`Profile "${trimmed}" already exists. Overwrite?`)) return;
             }
             profiles.save_profile(trimmed, parsed);
+            profiles.persist_to_disk(trimmed, parsed);
             refresh_profile_ui().then(() => {
                 document.getElementById('profile_select').value = trimmed;
             });
@@ -415,6 +417,7 @@ function profile_delete_onclick() {
     if (!name) return;
     if (!confirm(`Delete profile "${name}"?`)) return;
     profiles.delete_profile(name);
+    profiles.remove_from_disk(name);
     refresh_profile_ui();
 }
 
