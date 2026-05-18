@@ -133,6 +133,32 @@
             "hold": false,
             "source_port": 0,
             "target_port": 0
+        },
+        {
+            "target_usage": "0x00010030",
+            "source_usage": "0xfff30001",
+            "scaling": 1000,
+            "layers": [
+                0
+            ],
+            "sticky": false,
+            "tap": false,
+            "hold": false,
+            "source_port": 0,
+            "target_port": 0
+        },
+        {
+            "target_usage": "0x00010031",
+            "source_usage": "0xfff30002",
+            "scaling": 1000,
+            "layers": [
+                0
+            ],
+            "sticky": false,
+            "tap": false,
+            "hold": false,
+            "source_port": 0,
+            "target_port": 0
         }
     ],
     "macros": [
@@ -231,8 +257,8 @@
         []
     ],
     "expressions": [
-        "",
-        "",
+        "0x00010030 input_state dup abs 150 mul 1500 add mul /* mouse X accel: out = dx * (1.5 + |dx|*0.15) */",
+        "0x00010031 input_state dup abs 150 mul 1500 add mul /* mouse Y accel: out = dy * (1.5 + |dy|*0.15) */",
         "",
         "",
         "",
