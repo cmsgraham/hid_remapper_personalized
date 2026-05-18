@@ -10,6 +10,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -34,6 +35,17 @@ FINGERPRINT_KEYS = (
     "expressions",
     "quirks",
 )
+
+
+_EXPR_COMMENT_RE = re.compile(r"/\*.*?\*/", re.DOTALL)
+
+
+def _normalise_expression(expr: str) -> str:
+    """Strip /* comments */ and collapse whitespace so file-side comments
+    don't break fingerprint comparison with the device (which doesn't store them)."""
+    if not expr:
+        return ""
+    return " ".join(_EXPR_COMMENT_RE.sub(" ", expr).split())
 
 
 def _normalise_mapping(m):
@@ -72,7 +84,7 @@ def fingerprint(config):
                 macros.pop()
             normalised[key] = macros
         elif key == "expressions":
-            exprs = list(val or [])
+            exprs = [_normalise_expression(e) for e in (val or [])]
             while exprs and not exprs[-1]:
                 exprs.pop()
             normalised[key] = exprs

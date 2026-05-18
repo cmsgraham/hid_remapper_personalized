@@ -141,6 +141,11 @@ function normalise_mapping(m) {
     };
 }
 
+function normalise_expression(expr) {
+    if (!expr) return '';
+    return expr.replace(/\/\*[\s\S]*?\*\//g, ' ').split(/\s+/).filter(Boolean).join(' ');
+}
+
 function stable_stringify(value) {
     if (Array.isArray(value)) {
         return '[' + value.map(stable_stringify).join(',') + ']';
@@ -171,7 +176,7 @@ function canonicalise(config) {
             }
             out[key] = macros;
         } else if (key === 'expressions') {
-            const exprs = [...(val || [])];
+            const exprs = (val || []).map(normalise_expression);
             while (exprs.length && !exprs[exprs.length - 1]) {
                 exprs.pop();
             }
