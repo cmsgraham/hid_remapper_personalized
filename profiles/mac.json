@@ -120,6 +120,32 @@
             "hold": false,
             "source_port": 0,
             "target_port": 0
+        },
+        {
+            "target_usage": "0x00010030",
+            "source_usage": "0x00010030",
+            "scaling": 2000,
+            "layers": [
+                0
+            ],
+            "sticky": false,
+            "tap": false,
+            "hold": false,
+            "source_port": 0,
+            "target_port": 0
+        },
+        {
+            "target_usage": "0x00010031",
+            "source_usage": "0x00010031",
+            "scaling": 2000,
+            "layers": [
+                0
+            ],
+            "sticky": false,
+            "tap": false,
+            "hold": false,
+            "source_port": 0,
+            "target_port": 0
         }
     ],
     "macros": [
