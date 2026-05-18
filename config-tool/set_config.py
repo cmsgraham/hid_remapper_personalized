@@ -215,3 +215,17 @@ else:
     raise Exception(
         "Unknown PERSIST_CONFIG return code ({}).".format(persist_config_return_code)
     )
+
+# Success marker so external tools (e.g. the auto-profile watcher) can verify
+# the run actually reached the end rather than just relying on the exit code.
+print(
+    "SET_CONFIG_OK version={} mappings={} macros={} expressions={} quirks={}".format(
+        CONFIG_VERSION,
+        len(config.get("mappings", [])),
+        len(config.get("macros", [])),
+        len(config.get("expressions", [])),
+        len(config.get("quirks", [])),
+    ),
+    file=sys.stderr,
+    flush=True,
+)
