@@ -123,8 +123,8 @@
         },
         {
             "target_usage": "0x00010030",
-            "source_usage": "0x00010030",
-            "scaling": 2000,
+            "source_usage": "0xfff30001",
+            "scaling": 1000,
             "layers": [
                 0
             ],
@@ -136,8 +136,8 @@
         },
         {
             "target_usage": "0x00010031",
-            "source_usage": "0x00010031",
-            "scaling": 2000,
+            "source_usage": "0xfff30002",
+            "scaling": 1000,
             "layers": [
                 0
             ],
@@ -260,8 +260,8 @@
         []
     ],
     "expressions": [
-        "",
-        "",
+        "0x00010030 input_state dup abs 150 mul 1500 add mul /* mouse X accel: out = dx * (1.5 + |dx|*0.15) */",
+        "0x00010031 input_state dup abs 150 mul 1500 add mul /* mouse Y accel: out = dy * (1.5 + |dy|*0.15) */",
         "",
         "",
         "",
