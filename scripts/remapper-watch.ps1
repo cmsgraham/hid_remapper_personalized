@@ -50,6 +50,7 @@ $ReadyTimeoutSeconds  = 20     # how long to wait for HID config iface to be ope
 $ApplyMaxAttempts     = 6      # retry count on transient failures
 $ApplyBackoffSeconds  = 2      # base backoff between retries (doubled each time, capped)
 $HeartbeatSeconds     = 300    # log "alive" every N seconds and verify subscription
+$PollIntervalSeconds  = 15     # fallback poll: detect device arrival when WMI event is missed
 
 # --- Logging ----------------------------------------------------------------
 
@@ -62,6 +63,13 @@ function Write-Log {
 function Log-Info  { param([string]$m) Write-Log 'INFO'  $m }
 function Log-Warn  { param([string]$m) Write-Log 'WARN'  $m }
 function Log-Error { param([string]$m) Write-Log 'ERROR' $m }
+
+# --- Device presence probe (lightweight) ------------------------------------
+
+# Returns $true if the PnP entity is enumerated by Windows (no HID open needed).
+function Test-DevicePresent {
+    $null -ne (Get-CimInstance Win32_PnPEntity -Filter "DeviceID LIKE '$DeviceLike'" -ErrorAction SilentlyContinue)
+}
 
 # --- HID readiness probe ----------------------------------------------------
 
@@ -217,12 +225,17 @@ if ($existing) {
     [void](Invoke-SetConfig)
 }
 
+# Polling fallback state.
+$pollDevicePresent = [bool]$existing
+$lastPollCheck     = Get-Date
+
 $lastHeartbeat = Get-Date
 
 while ($true) {
-    # Wait up to 30s for an arrival event. Short timeout lets us run the
-    # heartbeat / subscription health check regularly.
-    $evt = Wait-Event -SourceIdentifier $SourceId -Timeout 30
+    # Wait up to $PollIntervalSeconds for an arrival event. Short timeout lets
+    # us poll for device presence and run heartbeat checks regularly.
+    $evt = Wait-Event -SourceIdentifier $SourceId -Timeout $PollIntervalSeconds
+    $appliedThisIteration = $false
 
     if ($evt) {
         # Drain everything currently queued.
@@ -248,6 +261,24 @@ while ($true) {
 
         Log-Info "applying profile '$Profile'"
         [void](Invoke-SetConfig)
+        $appliedThisIteration = $true
+        $pollDevicePresent    = $true   # device is present
+        $lastPollCheck        = Get-Date
+    }
+
+    # Polling fallback: catch device arrivals that the WMI subscription missed
+    # (common with KVM switches that keep USB enumerated on the Windows side).
+    if (-not $appliedThisIteration -and
+        ((Get-Date) - $lastPollCheck).TotalSeconds -ge $PollIntervalSeconds) {
+        $nowPresent = Test-DevicePresent
+        if ($nowPresent -and -not $pollDevicePresent) {
+            Log-Info "poll: device appeared without WMI event; applying profile '$Profile'"
+            [void](Invoke-SetConfig)
+        } elseif (-not $nowPresent -and $pollDevicePresent) {
+            Log-Info "poll: device is no longer present"
+        }
+        $pollDevicePresent = $nowPresent
+        $lastPollCheck     = Get-Date
     }
 
     # Heartbeat + subscription self-heal.
